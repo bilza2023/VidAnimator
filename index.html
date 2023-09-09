@@ -17,5 +17,17 @@
     <div id="canvas"></div>
     </div>
     <script type="module" src="/main.js"></script>
+    <script  src="./node_modules/howler/dist/howler.min.js"></script>
+    <script>
+      var sound = new Howl({
+    src: ['./sounds/music.wav'],
+    volume: 0.8
+      });
+    </script>
+
+    <div class="container">
+    <button id="play">Play</button>
+    <button id="stop">Stop</button>
+    </div>
   </body>
 </html>

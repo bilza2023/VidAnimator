@@ -33,4 +33,12 @@ const points = [
 0, 50];
 const polygon = slide04.addPolygon(50, 50, 'blue', points);
 
+
+document.getElementById('play').addEventListener('click',function(e){
+sound.play();
 presentation.play();
+});
+document.getElementById('stop').addEventListener('click',function(e){
+sound.stop();
+presentation.stop();
+});
