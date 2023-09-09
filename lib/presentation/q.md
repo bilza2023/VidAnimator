@@ -1,16 +1,18 @@
 I am trying to create a Presentation (Slide show) app with pixi.js
 The idea is simple
     - The Presentation object has slides array. The addslide will add a slide in this array.
-    - The Slide object (also called Components object) has an items array. this items array add items / components to pixi.js app object and heance it is visible on the screen.
+    - The Slide object (also called Components object) has a pixi.js Container. All the components (pixi.js display items) are added to this container in the slide.
+    
+    - I want when the presentation in run (presentation.run()) it should display the first slide and then show the second slid after 10 seconds and then the third slide after 10 seconds till the end.
+    - it can be done by taking the container of the slide and adding it to pixi.stage 
+    this.app.stage.addChild(this.slides[this.currentSlide].container);
 
-I want when the presentation in run (presentation.run()) it should display the first slide and then show the second slid after 10 seconds and then the third slide after 10 seconds till the end.
+    - The presentation keeps track of the current slide being displayed using this.currentSlide.
+    - the presentation.run should use setInterval or setTime out to increment the slide number to show all slides
 
-How to achieve this ?
+PLEASE COMPLETE THE  presentation.play() function.
 
-At the monent all the items are added to pixi app directly by Slide object. Actuall what I think should happen in that a slide should be pixi container and all the items should be added to the slide (container). once thaat slide / container is removed it will also remove all the items it has
-is this approch correct or there is some other option.
-
-Her is code for presentation obj
+PRESENTATION.JS
 import { Application } from 'pixi.js';
 import aspectRatioHeight from './aspectRationHeight';
 import Components from '../components/Components';
@@ -22,6 +24,7 @@ export default class VidAnimator {
 
 constructor( htmlElmId='canvas' , wdPerc=75 , bgColor='#e5e8a4'){
 this.slides = [];
+this.currentSlide = 0; // increment
 this.canvasWd = (window.innerWidth/100) * wdPerc;
 this.canvasHt = aspectRatioHeight(this.canvasWd);
 
@@ -40,22 +43,25 @@ addToTicker(fn){
     this.app.ticker.add(fn)
 }
 
-addSlide(duration=10){
+addSlide(duration=2){
 const slide = new Components(this.app,this.canvasWd,this.canvasHt,duration);
 this.slides.push(slide);
-return slide;
+    return slide;
 }
 
-play(){
+play() {
+this.app.stage.addChild(this.slides[this.currentSlide].container);
 
 }
+
+
 pause(){}
 stop(){}
 
 }//class VidAnimator
 
-code for Slide object
-import { Graphics,TextStyle,Text as PIXIText } from 'pixi.js';
+Slide / Component.js
+import { Graphics,TextStyle,Text as PIXIText,Container } from 'pixi.js';
 import '@pixi/graphics-extras';
 
 import setGraphicsAnchorX from './setGraphicsAnchorX';
@@ -67,13 +73,12 @@ import calculateFontSize from './calculateFontSize';
 export default class Scene {
 
 constructor(app,canvasWd,canvasHt,duration){
-    
+    this.container = new Container();
     this.app = app;
     this.canvasWd = canvasWd;
     this.canvasHt = canvasHt;
     // this.anchorAlignment = 'left';
     this.duration=duration;
-    this.items = [];
 }
 ///////////////////////////////////
 addRectFill(x=0,y=0,wd=10,ht=10,color=0x66CCFF){
@@ -94,7 +99,7 @@ rectangle.x = (this.canvasWd/100)* x; //assign x and y here
 rectangle.y = (this.canvasHt/100)* y;
 
 this.app.stage.addChild(rectangle);//importantay
-this.items.push(rectangle); //importantay
+this.container.addChild(rectangle); //importantay
 
 //-- This is some advance level shit - the rectangle is permanant where as the anchorAlignment is determined at run time
 rectangle.setGraphicsAnchorX = (anchorAlignment = 0) => setGraphicsAnchorX(rectangle, anchorAlignment);//importantay
@@ -131,7 +136,7 @@ rectangle.x = (this.canvasWd/100)* x; //assign x and y here
 rectangle.y = (this.canvasHt/100)* y;
 
 this.app.stage.addChild(rectangle);//importantay
-this.items.push(rectangle); //importantay
+this.container.addChild(rectangle); //importantay
 
 //-- This is some advance level shit - the rectangle is permanant where as the anchorAlignment is determined at run time
 rectangle.setGraphicsAnchorX = (anchorAlignment = 0) => setGraphicsAnchorX(rectangle, anchorAlignment);//importantay
@@ -162,7 +167,7 @@ addLine(x1=0,y1=0,x2=50,y2=50,color='black',strokeWidth=2,alpha=1){
 
     this.app.stage.addChild(line);
 
-this.items.push(line); //importantay
+this.container.addChild(line); //importantay
 return line;   
 
 }
@@ -186,7 +191,7 @@ circle.drawCircle((this.canvasWd/100 * x), (this.canvasHt/100 * y),
             
 this.app.stage.addChild(circle);
 
-this.items.push(circle); //importantay
+this.container.addChild(circle); //importantay
 return circle;   
 }
 ///////////////////////////////////
@@ -198,7 +203,7 @@ circle.drawCircle((this.canvasWd/100 * x), (this.canvasHt/100 * y),
 circle.endFill();            
 this.app.stage.addChild(circle);
 
-this.items.push(circle); //importantay
+this.container.addChild(circle); //importantay
 return circle;   
 }
 ///////////////////////////////////
@@ -213,7 +218,7 @@ const fontSize = calculateFontSize(content, desiredWidth);
     txt.y = (this.canvasHt/100)* y;
 this.app.stage.addChild(txt);
 
-this.items.push(txt); //importantay
+this.container.addChild(txt); //importantay
 return txt;  
 }
 getTextStyle(){
@@ -227,7 +232,7 @@ torus.drawTorus((this.canvasWd/100 * x), (this.canvasHt/100 * y), innerRadius, o
 torus.endFill();            
 this.app.stage.addChild(torus);
 
-this.items.push(torus); //importantay
+this.container.addChild(torus); //importantay
 return torus;   
 }
 ///////////////////////////////////
@@ -238,7 +243,7 @@ addChamferRect(x=0, y=0, color='red', width=100, height=50, radius=10) {
     chamferRect.endFill();            
     this.app.stage.addChild(chamferRect);
 
-    this.items.push(chamferRect); //important
+    this.container.addChild(chamferRect); //important
     return chamferRect;   
 }
 ///////////////////////////////////
@@ -249,7 +254,7 @@ addFilletRect(x=0, y=0, color='red', width=100, height=50, radius=10) {
     filletRect.endFill();            
     this.app.stage.addChild(filletRect);
 
-    this.items.push(filletRect); //important
+    this.container.addChild(filletRect); //important
     return filletRect;   
 }
 ///////////////////////////////////////
@@ -260,7 +265,7 @@ addRegularPolygon(x=0, y=0, color='red', radius=50, sides=5, rotation=0) {
     regularPolygon.endFill();            
     this.app.stage.addChild(regularPolygon);
 
-    this.items.push(regularPolygon); //important
+    this.container.addChild(regularPolygon); //important
     return regularPolygon;   
 }
 ////////////////////////////////////////
@@ -285,7 +290,7 @@ addStar(x=0, y=0, color='red', radius=50, points=5, innerRadius=25) {
     star.endFill();
     this.app.stage.addChild(star);
 
-    this.items.push(star); //important
+    this.container.addChild(star); //important
     return star;
 }
 ////////////////////////////////////////
@@ -304,7 +309,7 @@ addPolygon(x=0, y=0, color='red', points) {
     polygon.endFill();
     this.app.stage.addChild(polygon);
 
-    this.items.push(polygon); //important
+    this.container.addChild(polygon); //important
     return polygon;
 }
 /////////////////////////////////////////////////
@@ -324,26 +329,28 @@ addPolygon(x=0, y=0, color='red', points) {
 
 }//scene
 
-
-main.js where the app is run
+main.js
 import Presentation from './lib/presentation/Presentation';
 import Icons from './lib/icons';
 
 ////////////////////////////////////////////
 const presentation = new Presentation();
 const slide01 = presentation.addSlide();
+const slide02 = presentation.addSlide();
+const slide03 = presentation.addSlide();
+const slide04 = presentation.addSlide();
 
 
 const grid = slide01.addGridFull('#adaf67');
 const circle = slide01.addCircle(30,30,20,'red',5);
 const circleFull = slide01.addCircleFull(60,30,20,'red',5);
-const txt = slide01.addText(50,50,'New Text');
-const icon = slide01.addText(50,70,Icons.BAG);
-const torus = slide01.addTorus(20,40,'green',20,80);
-const chamfer = slide01.addChamferRect(20,60,'blue',200,80,10);
-const fillet = slide01.addFilletRect(60,60,'brown',200,80,10);
-const regular = slide01.addRegularPolygon(10,70,'red',80,6,10);
-const star = slide01.addStar(80,10,'green');
+const txt = slide02.addText(50,50,'New Text');
+const icon = slide02.addText(50,70,Icons.BAG);
+const torus = slide02.addTorus(20,40,'green',20,80);
+const chamfer = slide03.addChamferRect(20,60,'blue',200,80,10);
+const fillet = slide03.addFilletRect(60,60,'brown',200,80,10);
+const regular = slide03.addRegularPolygon(10,70,'red',80,6,10);
+const star = slide04.addStar(80,10,'green');
 
 const points = [
 0, 0, 
@@ -351,12 +358,6 @@ const points = [
 20, 60,
 10,60, 
 0, 50];
-const polygon = slide01.addPolygon(50, 50, 'blue', points);
+const polygon = slide04.addPolygon(50, 50, 'blue', points);
 
-
-vidAnimator.addToTicker(() => {
-    // fillRect.rotation += 0.01;
-});
-
-console.log('slide01' ,slide01);
-
+presentation.play();
